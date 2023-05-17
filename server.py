@@ -89,70 +89,72 @@ if __name__ == "__main__":
 
 	Blogchain.View_all_comments_on_post("First Post")
 
-# class Block:
-# 	pervious_block = None
-# 	pervious_block_hash = "0000000000000000000000000000000000000000000000000000000000000000"
-# 	sender = 0
-# 	receiver = 0
-# 	amount = 0
-# 	nonce = 0
-# 	#timestamp for one block 
-# 	logical_time = -1
+class Block:
+	pervious_block = None
+	pervious_block_hash = "0000000000000000000000000000000000000000000000000000000000000000"
+	#Operation refers to the post and comment operations ⟨OP, username, title, content⟩:
+	op = ""
+	username = ""
+	title = ""
+	content = ""
+	nonce = 0
+	#timestamp for one block 
+	logical_time = -1
 
 	
-# 	def to_bytes(self):
-# 		temp_string = self.pervious_block_hash + "P" + str(self.sender) + "P" + str(self.receiver) + "$" + str(self.amount) + str(self.nonce)
-# 		#print(temp_string)
-# 		return bytes(temp_string, 'utf-8')
-# 		#return self.pervious_block_hash + self.sender.to_bytes(4, 'big') + self.receiver.to_bytes(4, 'big') + self.amount.to_bytes(4, 'big') + self.nonce.to_bytes(4, 'big') 
+	def to_bytes(self):
+		temp_string = self.pervious_block_hash + self.op + self.username + self.title + self.content + str(self.nonce) + str(self.logical_time)
+		#print(temp_string)
+		return bytes(temp_string, 'utf-8')
+		#return self.pervious_block_hash + self.sender.to_bytes(4, 'big') + self.receiver.to_bytes(4, 'big') + self.amount.to_bytes(4, 'big') + self.nonce.to_bytes(4, 'big') 
 
-# class BlockChain:
-# 	tail = None
+class BlockChain:
+	tail = None
 
-# 	def add_transaction(self, sender, receiver, amount, time):
-# 		new_block = Block()
-# 		new_block.pervious_block = self.tail
-# 		if None == self.tail:
-# 			new_block.pervious_block_hash = "0000000000000000000000000000000000000000000000000000000000000000"
-# 		else:
-# 			new_block.pervious_block_hash = hashlib.sha256(self.tail.to_bytes()).hexdigest()
-# 		new_block.sender = sender
-# 		new_block.receiver = receiver
-# 		new_block.amount = amount
-# 		new_block.nonce = 0
-# 		new_block.logical_time = time
-# 		while ('0' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]) and ('1' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]) and ('2' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]) and ('3' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]):
-# 			new_block.nonce += 1
+	def add_transaction(self, sender, receiver, amount, time):
+		new_block = Block()
+		new_block.pervious_block = self.tail
+		if None == self.tail:
+			new_block.pervious_block_hash = "0000000000000000000000000000000000000000000000000000000000000000"
+		else:
+			new_block.pervious_block_hash = hashlib.sha256(self.tail.to_bytes()).hexdigest()
+		new_block.sender = sender
+		new_block.receiver = receiver
+		new_block.amount = amount
+		new_block.nonce = 0
+		new_block.logical_time = time
+		while ('0' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]) and ('1' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]) and ('2' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]) and ('3' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]):
+			new_block.nonce += 1
 
-# 		self.tail = new_block
+		self.tail = new_block
 
-# 	def get_balance(self, target):
-# 		current = self.tail
-# 		res = START_MONEY
-# 		while None != current:
-# 			if target == current.sender:
-# 				res -= current.amount
-# 			if target == current.receiver:
-# 				res += current.amount
-# 			current = current.pervious_block
+	def get_balance(self, target):
+		current = self.tail
+		res = START_MONEY
+		while None != current:
+			if target == current.sender:
+				res -= current.amount
+			if target == current.receiver:
+				res += current.amount
+			current = current.pervious_block
 		
-# 		return res
+		return res
 
-# 	def print(self):
-# 		stack = []
-# 		current = self.tail
-# 		while None != current:
-# 			stack.append(current)
-# 			current = current.pervious_block
+	def print(self):
+		stack = []
+		current = self.tail
+		while None != current:
+			stack.append(current)
+			current = current.pervious_block
 
-# 		print("[", end="", flush=True)
-# 		while 0 != len(stack):
-# 			current = stack.pop()
-# 			print(f"(P{current.sender}, P{current.receiver}, ${current.amount}, T{current.logical_time}, {current.pervious_block_hash})", end="", flush=True)
-# 			#print(f"(P{current.sender}, P{current.receiver}, ${current.amount}, {hashlib.sha256(current.to_bytes()).hexdigest()})", end="")
-# 			if 0 != len(stack):
-# 				print(", ", end="", flush=True)
-# 		print("]", flush=True)
+		print("[", end="", flush=True)
+		while 0 != len(stack):
+			current = stack.pop()
+			print(f"(P{current.sender}, P{current.receiver}, ${current.amount}, T{current.logical_time}, {current.pervious_block_hash})", end="", flush=True)
+			#print(f"(P{current.sender}, P{current.receiver}, ${current.amount}, {hashlib.sha256(current.to_bytes()).hexdigest()})", end="")
+			if 0 != len(stack):
+				print(", ", end="", flush=True)
+		print("]", flush=True)
 
 # server_logical_time = 0
 # START_MONEY = -1
