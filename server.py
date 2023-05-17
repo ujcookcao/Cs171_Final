@@ -21,6 +21,11 @@ class Blog:
 	def __init__(self):
 		self.Blogchain = []
 	def add_post(self, author, title , content):
+		#check if the post already exist
+		for post in self.Blogchain:
+			if post.author == author and post.title == title and post.content == content:
+				print(f"Post ( {author}, {title} )already exist")
+				return
 		new_post = Post(author, title, content)
 		self.Blogchain.append(new_post)
 	def delete_post(self, author,title,content):
@@ -48,16 +53,41 @@ class Blog:
 					else:
 						print("No comment found given the commenter and comment_content")
 
-	def print_post(self):
+
+# View all posts: list the title and the author for all blog posts in chronological order
+#  View all posts made by a user: given a username, list the title and content of all blog posts made by this user in chronological order
+#  View all comments on a post: given the title of a blog post, get its content, and list all the comments on the post and their authors
+	def View_all_posts(self):
+		print("All posts ====================")
 		for post in self.Blogchain:
-			print(post.author)
-			print(post.title)
-			print(post.content)
-			print(post.comment)
+			print("Title: ", post.title, "Author: ", post.author)
+		print("====================================")
+	def View_all_posts_by_user(self, author):
+		print(f"Posts by {author} ====================")
+		for post in self.Blogchain:
+			if post.author == author:
+				print("Title: ", post.title, "Content: ", post.content)
+		print("====================================")
+	def View_all_comments_on_post(self, title):
+		print(f"Comments on {title} ====================")
+		for post in self.Blogchain:
+			if post.title == title:
+				print("Author: ",post.author ,"Title: ", post.title, "Content: ", post.content)
+				for comment in post.comment:
+					print("Commenter: ", comment[0], "||", "Content: ", comment[1])
+		print("====================================")
 				
 if __name__ == "__main__":
+	Blogchain = Blog()
+	Blogchain.add_post("Alice", "First Post", "Hello World")
+	Blogchain.add_post("Alice", "First Post", "Hello World")
+	Blogchain.add_post("Alice", "Second Post", "Hello World")
+	Blogchain.add_post("Bob", "Second Post", "Hello World")
+	Blogchain.add_comment("Alice", "First Post", "Bob", "Nice Post")
+	Blogchain.add_comment("Alice", "First Post", "Bob", "1111comment")
+	
 
-
+	Blogchain.View_all_comments_on_post("First Post")
 
 # class Block:
 # 	pervious_block = None
