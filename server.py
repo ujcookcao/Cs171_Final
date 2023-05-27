@@ -2,6 +2,7 @@ import socket
 import hashlib
 import threading
 import sys
+import BlockChain
 from os import _exit
 from sys import stdout
 from time import sleep
@@ -89,118 +90,51 @@ if __name__ == "__main__":
 
 	Blogchain.View_all_comments_on_post("First Post")
 
-class Block:
-	pervious_block = None
-	pervious_block_hash = "0000000000000000000000000000000000000000000000000000000000000000"
-	#Operation refers to the post and comment operations ⟨OP, username, title, content⟩:
-	op = ""
-	username = ""
-	title = ""
-	content = ""
-	nonce = 0
-	#timestamp for one block 
-	logical_time = -1
 
-	
-	def to_bytes(self):
-		temp_string = self.pervious_block_hash + self.op + self.username + self.title + self.content + str(self.nonce) + str(self.logical_time)
-		#print(temp_string)
-		return bytes(temp_string, 'utf-8')
-		#return self.pervious_block_hash + self.sender.to_bytes(4, 'big') + self.receiver.to_bytes(4, 'big') + self.amount.to_bytes(4, 'big') + self.nonce.to_bytes(4, 'big') 
 
-class BlockChain:
-	tail = None
+IP = socket.gethostbyname('localhost')
+PORT = 9000
+in_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_sockets = [None] * 3
+client_ports = [-1,-1,-1,-1]
+id_to_port = [-1,-1,-1,-1] # id_to_port[i] has the port number of the client with id i+1
+blockchain = BlockChain()
+connect_lock = threading.Lock()
 
-	def add_transaction(self, sender, receiver, amount, time):
-		new_block = Block()
-		new_block.pervious_block = self.tail
-		if None == self.tail:
-			new_block.pervious_block_hash = "0000000000000000000000000000000000000000000000000000000000000000"
-		else:
-			new_block.pervious_block_hash = hashlib.sha256(self.tail.to_bytes()).hexdigest()
-		new_block.sender = sender
-		new_block.receiver = receiver
-		new_block.amount = amount
-		new_block.nonce = 0
-		new_block.logical_time = time
-		while ('0' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]) and ('1' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]) and ('2' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]) and ('3' != hashlib.sha256(new_block.to_bytes()).hexdigest()[0]):
-			new_block.nonce += 1
+def get_user_input():
+	while True:
+		user_input = input()
+		parameters = user_input.split()
+		if 0 == len(parameters) or "exit" == parameters[0]:
+			in_sock.close()
+			for sock in client_sockets:
+				if None != sock:
+					sock[0].close()
+			#print("exiting program", flush=True)
+			stdout.flush()
+			_exit(0)
+		elif "wait" == parameters[0]:
+			sleep(int(parameters[1]))
+		elif "b" == parameters[0] or "Balance" == parameters[0]:
+			print(f"P1: ${blockchain.get_balance(1)}, P2: ${blockchain.get_balance(2)}, P3: ${blockchain.get_balance(3)}", flush=True)
+		elif "c" == parameters[0] or "Blockchain" == parameters[0]:
+			blockchain.print()
 
-		self.tail = new_block
+def respond(conn, addr):
+	#print(f"accepted connection from port {addr[1]}", flush=True)
 
-	def get_balance(self, target):
-		current = self.tail
-		res = START_MONEY
-		while None != current:
-			if target == current.sender:
-				res -= current.amount
-			if target == current.receiver:
-				res += current.amount
-			current = current.pervious_block
-		
-		return res
+	while True: # handle message sent from a client
+		try:
+			data = conn.recv(1024)
+		except:
+			#print(f"exception in receiving from {addr[1]}", flush=True)
+			break
+		if not data:
+			conn.close()
+			#print(f"connection closed from {addr[1]}", flush=True)
+			break
 
-	def print(self):
-		stack = []
-		current = self.tail
-		while None != current:
-			stack.append(current)
-			current = current.pervious_block
-
-		print("[", end="", flush=True)
-		while 0 != len(stack):
-			current = stack.pop()
-			print(f"(P{current.sender}, P{current.receiver}, ${current.amount}, T{current.logical_time}, {current.pervious_block_hash})", end="", flush=True)
-			#print(f"(P{current.sender}, P{current.receiver}, ${current.amount}, {hashlib.sha256(current.to_bytes()).hexdigest()})", end="")
-			if 0 != len(stack):
-				print(", ", end="", flush=True)
-		print("]", flush=True)
-
-# server_logical_time = 0
-# START_MONEY = -1
-# IP = socket.gethostbyname('localhost')
-# PORT = 9000
-# in_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# client_sockets = [None] * 3
-# client_ports = [-1,-1,-1]
-# id_to_port = [-1,-1,-1] # id_to_port[i] has the port number of the client with id i+1
-# blockchain = BlockChain()
-# connect_lock = threading.Lock()
-
-# def get_user_input():
-# 	while True:
-# 		user_input = input()
-# 		parameters = user_input.split()
-# 		if 0 == len(parameters) or "exit" == parameters[0]:
-# 			in_sock.close()
-# 			for sock in client_sockets:
-# 				if None != sock:
-# 					sock[0].close()
-# 			#print("exiting program", flush=True)
-# 			stdout.flush()
-# 			_exit(0)
-# 		elif "wait" == parameters[0]:
-# 			sleep(int(parameters[1]))
-# 		elif "b" == parameters[0] or "Balance" == parameters[0]:
-# 			print(f"P1: ${blockchain.get_balance(1)}, P2: ${blockchain.get_balance(2)}, P3: ${blockchain.get_balance(3)}", flush=True)
-# 		elif "c" == parameters[0] or "Blockchain" == parameters[0]:
-# 			blockchain.print()
-
-# def respond(conn, addr):
-# 	#print(f"accepted connection from port {addr[1]}", flush=True)
-
-# 	while True: # handle message sent from a client
-# 		try:
-# 			data = conn.recv(1024)
-# 		except:
-# 			#print(f"exception in receiving from {addr[1]}", flush=True)
-# 			break
-# 		if not data:
-# 			conn.close()
-# 			#print(f"connection closed from {addr[1]}", flush=True)
-# 			break
-
-# 		threading.Thread(target=handle_msg, args=(data, conn, addr)).start()
+		threading.Thread(target=handle_msg, args=(data, conn, addr)).start()
 
 # def handle_msg(data, conn, addr):
 # 	global server_logical_time 

@@ -4,7 +4,7 @@ import sys
 from os import _exit
 from sys import stdout
 from time import sleep
-
+import hashlib
 from queue import PriorityQueue # queue module is thread safe
 request_queue = PriorityQueue() # each element is (time, id)
 
