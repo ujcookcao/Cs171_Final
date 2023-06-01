@@ -3,7 +3,7 @@ import socket
 import sys
 import threading
 import time
-
+import json
 from BlockChainheader import BlockChain
 
 
@@ -25,7 +25,7 @@ class Server:
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind((self.host, self.port))
         self.connections = {}
-        self.peers = ['P1', 'P2', 'P3', 'P4', 'P5']
+        self.peers =['P1', 'P2', 'P3', 'P4', 'P5']
         self.ports = {peer: 9000 + i for i, peer in enumerate(self.peers)}
         self.name = [peer for peer, port in self.ports.items() if port == self.port][0]
     
@@ -53,6 +53,8 @@ class Server:
         threading.Thread(target=self.receive_messages, args=(client,)).start()
 
     def read_commands(self):
+        #create a dictionary to store the message in json format to send to other peers
+        json_message = {}
         while True:
             message = input().strip().split() # split the input into a list of words
             print("message: ", message)
@@ -68,10 +70,14 @@ class Server:
                 if len(message) < 4:
                     print("Invalid post. Please provide an operation, username, title, and content.")
                 else:
-                    op, username, title, content = message[0], message[1], message[2], message[3]
-                    self.blockchain.add_operation(op, username, title, content)
-                    print(f"self.name: {self.name}, op: {op}, username: {username}, title: {title}, content: {content}")
-                    self.broadcast_message(message)
+                    json_message["op"] = message[0]
+                    json_message["username"] = message[1]
+                    json_message["title"] = message[2]
+                    json_message["content"] = message[3]
+                    self.blockchain.add_operation(json_message["op"], json_message["username"], json_message["title"], json_message["content"])
+                    print(f"self.name: {self.name}, op: {json_message['op']}, username: {json_message['username']}, title: {json_message['title']}, content: {json_message['content']}")
+                    transmited_message = json.dumps(json_message)
+                    self.broadcast_message(transmited_message)
 
 
 
@@ -96,19 +102,18 @@ class Server:
                 #message = message.split()
 
                 print(f"Received from {sender}: {message}")
-                print(message[0])
-                print(len(message))
+                json_message = json.loads(message)
                 if len(message) == 0:
                     print("Invalid input. Please provide an operation, username, title, and content.")
-                elif message[0].lower() == "p" or message[0].lower() == "post":
-                    if len(message) < 4:
+                elif json_message["op"].lower() == "p" or json_message["op"].lower() == "post":
+                    if json_message["username"] == "" or json_message["title"] == "" or json_message["content"] == "": 
                         print("Invalid post. Please provide an operation, username, title, and content.")
                     else:
-                        op, username, title, content = message
+                        op, username, title, content = json_message["op"], json_message["username"], json_message["title"], json_message["content"]
                         self.blockchain.add_operation(op, username, title, content)
                         print(f"{self.name}: {op} {username} {title} {content}")
                         print("Successfully added to blockchain")
-                elif message[0].lower() == "b" or message[0].lower() == "bc":
+                elif json_message["op"].lower() == "b" or json_message["op"].lower() == "bc":
                     self.blockchain.print()
             except BrokenPipeError:
                 print("error")
