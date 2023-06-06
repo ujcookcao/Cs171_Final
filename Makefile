@@ -1,15 +1,12 @@
-server: server.py
-	python3 -u server.py 100
-client1: client.py
-	python3 -u client.py 1
-client2: client.py
-	python3 -u client.py 2
-client3: client.py
-	python3 -u client.py 3
+compile:
 
-test1: client.py
-	python3 -u client.py 1 < input_1
-test2: client.py
-	python3 -u client.py 2 < input_2
-test3: client.py
-	python3 -u client.py 3 < input_3
+client1: 
+	python3 -u client.py P1
+client2: 
+	python3 -u client.py P2
+client3: 
+	python3 -u client.py P3
+client4: 
+	python3 -u client.py P4
+client5: 
+	python3 -u client.py P5
